@@ -20,7 +20,7 @@ So I thought: this seems like something AI can help with. Reading information, s
 
 And this is the result: a web app (open source, of course!) that helps us craft our newsletter. You can see it in action in this 90-second video:
 
-[![screenshot](screenshot.png)](https://www.youtube.com/3_RciT8yi9I)
+[![screenshot](screenshot.png)](https://www.youtube.com/watch?v=3_RciT8yi9I)
 
 ## What it does:
 
