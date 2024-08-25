@@ -7,7 +7,7 @@ const md = markdownit();
 
 function LoginStatus() {
   const { data: session } = useSession();
-  if (session) {
+  if (session && session.user) {
     return (
       <div className="login-status">
         Signed in as {session.user.name} <br />
@@ -60,7 +60,7 @@ export default function Home() {
     <main className="main">
       <h1>Newsletter Generator</h1>
       <LoginStatus />
-      {session?.user.name && (
+      {session && session.user && session.user.name && (
         <div>
           <button onClick={handleClick} disabled={isStreaming}>
             {isStreaming ? 'Streaming...' : 'Generate newsletter'}
