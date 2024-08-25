@@ -2,6 +2,9 @@
 import styles from "./page.module.css";
 import { useSession, signIn, signOut } from "next-auth/react"
 import { useState, useEffect, FormEvent } from 'react';
+import markdownit from 'markdown-it'
+
+const md = markdownit()
 
 function LoginStatus() {
   const { data: session } = useSession()
@@ -59,8 +62,7 @@ export default function Home() {
             {isStreaming ? 'Streaming...' : 'Generate newsletter'}
           </button>
           { response && (
-            <div>
-              {response}
+            <div dangerouslySetInnerHTML={{ __html: md.render(response) }}>
             </div>
           )}
         </div>
