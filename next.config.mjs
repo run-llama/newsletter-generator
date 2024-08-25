@@ -3,7 +3,9 @@ import CopyWebpackPlugin from 'copy-webpack-plugin';
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['sharp', 'onnxruntime-node'],
+    outputFileTracingIncludes: { "/api/*": ["./node_modules/**/*.wasm"], }
   },
+  /*
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     config.plugins.push(
       new CopyWebpackPlugin({
@@ -18,6 +20,7 @@ const nextConfig = {
     );
     return config;
   },
+  */
 };
 
 export default nextConfig;
