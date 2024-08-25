@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]/route"
 import { NextRequest, NextResponse } from 'next/server';
-import { OpenAI, Anthropic } from "llamaindex";
+import { OpenAI } from "llamaindex";
 import util from 'node:util';
 
 const exampleNewsletter = `
