@@ -1,0 +1,94 @@
+:root {
+  --primary-color: #1DA1F2;  /* Twitter blue */
+  --background-color: #f0f2f5;
+  --text-color: #333;
+  --button-text-color: #fff;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+button {
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0f84c7;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--primary-color);
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.login-status {
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.login-status button {
+  margin-left: 10px;
+}
+
+.markdown-container {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.markdown-edit, .markdown-preview {
+  flex: 1;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.markdown-edit textarea {
+  width: calc(100% - 20px);
+  min-height: 1000px;
+  max-height: 1000px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.markdown-preview {
+  overflow-y: auto;
+  max-height: 1000px;
+}

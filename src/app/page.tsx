@@ -1,44 +1,43 @@
-'use client'
-import styles from "./page.module.css";
-import { useSession, signIn, signOut } from "next-auth/react"
-import { useState, useEffect, FormEvent } from 'react';
-import markdownit from 'markdown-it'
+"use client";
+import React, { useState, useEffect, FormEvent } from 'react';
+import { useSession, signIn, signOut } from "next-auth/react";
+import markdownit from 'markdown-it';
 
-const md = markdownit()
+const md = markdownit();
 
 function LoginStatus() {
-  const { data: session } = useSession()
+  const { data: session } = useSession();
   if (session) {
     return (
-      <>
+      <div className="login-status">
         Signed in as {session.user.name} <br />
         <button onClick={() => signOut()}>Sign out</button>
-      </>
-    )
+      </div>
+    );
   }
   return (
-    <>
+    <div className="login-status">
       Not signed in <br />
       <button onClick={() => signIn("twitter")}>Sign in with Twitter</button>
-    </>
-  )
+    </div>
+  );
 }
 
 export default function Home() {
-  const { data: session } = useSession()
-  const [response, setResponse] = useState('');
+  const { data: session } = useSession();
+  const [markdown, setMarkdown] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
 
   const handleClick = async (e: FormEvent) => {
     e.preventDefault();
-    setResponse('');
+    setMarkdown('');
     setIsStreaming(true);
 
     const eventSource = new EventSource(`/api/twitter`);
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      setResponse((prev) => prev + data.chunk);
+      setMarkdown((prev) => prev + data.chunk);
     };
 
     eventSource.onerror = (error) => {
@@ -53,18 +52,34 @@ export default function Home() {
     });
   };
 
+  const handleMarkdownChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMarkdown(e.target.value);
+  };
+
   return (
-    <main className={styles.main}>
+    <main className="main">
+      <h1>Newsletter Generator</h1>
       <LoginStatus />
       {session?.user.name && (
         <div>
           <button onClick={handleClick} disabled={isStreaming}>
             {isStreaming ? 'Streaming...' : 'Generate newsletter'}
           </button>
-          { response && (
-            <div dangerouslySetInnerHTML={{ __html: md.render(response) }}>
+          <div className="markdown-container">
+            <div className="markdown-edit">
+              <h3>Raw Markdown</h3>
+              <textarea
+                value={markdown}
+                onChange={handleMarkdownChange}
+                disabled={isStreaming}
+                placeholder="Markdown will appear here. You can edit it after generation."
+              />
             </div>
-          )}
+            <div className="markdown-preview">
+              <h3>Rendered Markdown</h3>
+              <div dangerouslySetInnerHTML={{ __html: md.render(markdown) }} />
+            </div>
+          </div>
         </div>
       )}
     </main>
