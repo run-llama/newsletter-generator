@@ -1,5 +1,4 @@
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const path = require('path');
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 
 const nextConfig = {
   experimental: {
