@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]/route"
 import { NextRequest, NextResponse } from 'next/server';
-import { OpenAI } from "llamaindex";
+import { OpenAI, Anthropic } from "llamaindex";
 import util from 'node:util';
 
 const exampleNewsletter = `
@@ -149,18 +149,18 @@ export async function GET(request) {
     let mostLiked = tweets.data.sort((a, b) => b.public_metrics.like_count - a.public_metrics.like_count).slice(0, 3)
     let mostLikedList = listTweets(mostLiked)
 
-    const llm = new OpenAI({
-        model: "gpt-4o-mini",
-        temperature: 0.2,
-        streaming: true,
-        openai_api_key: process.env.OPENAI_API_KEY,
-    });
-    // const llm = new Anthropic({
-    //     model: "claude-3-5-sonnet",
+    // const llm = new OpenAI({
+    //     model: "gpt-4o-mini",
     //     temperature: 0.2,
     //     streaming: true,
-    //     apiKey: process.env.ANTHROPIC_API_KEY
-    // })
+    //     openai_api_key: process.env.OPENAI_API_KEY,
+    // });
+    const llm = new Anthropic({
+        model: "claude-sonnet-4-20250514",
+        temperature: 0.2,
+        streaming: true,
+        apiKey: process.env.ANTHROPIC_API_KEY
+    })
 
     const stream = new ReadableStream({
         async start(controller) {
