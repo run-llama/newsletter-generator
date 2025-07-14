@@ -140,7 +140,33 @@ export async function GET(request) {
         })
     }
 
-    console.log(util.inspect(tweets,{depth: 4}))
+    if (tweets.data) {
+        for (const tweet of tweets.data) {
+            if (tweet.note_tweet && tweet.note_tweet.text) {
+                // Use a Set to handle duplicate t.co URLs in a single tweet
+                const tcoUrls = [...new Set(tweet.note_tweet.text.match(/https:\/\/t\.co\/[a-zA-Z0-9]+/g) || [])];
+                if (tcoUrls.length > 0) {
+                    const resolvedPairs = await Promise.all(
+                        tcoUrls.map(async (url) => {
+                            try {
+                                const response = await fetch(url);
+                                return { original: url, resolved: response.url };
+                            } catch (e) {
+                                console.log(`Could not resolve ${url}`);
+                                return { original: url, resolved: url }; // keep original on error
+                            }
+                        })
+                    );
+                    
+                    for (const { original, resolved } of resolvedPairs) {
+                        // Use global replace to handle multiple occurrences of the same t.co URL
+                        const searchRegExp = new RegExp(original.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+                        tweet.note_tweet.text = tweet.note_tweet.text.replace(searchRegExp, resolved);
+                    }
+                }
+            }
+        }
+    }
 
     // list all the tweets
     let tweetsList = listTweets(tweets.data) 
