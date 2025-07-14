@@ -204,6 +204,7 @@ export async function GET(request) {
                     ---------
 
                     Important features to note:
+                    * Vary the greeting from "Llama Lovers" to something Llama-related, like "Llama Fans" or "Llama Enthusiasts"
                     * The headings should be:
                         * The Highlights (most liked tweets, see below)
                         * LlamaCloud & LlamaParse (tweets that mention llamacloud or llamaparse)
