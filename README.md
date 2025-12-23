@@ -36,6 +36,81 @@ And this is the result: a web app (open source, of course!) that helps us craft
 * It generates a markdown draft of the newsletter
 * It lets us edit the draft, because it doesn't always get it right
 
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- Twitter Developer Account with OAuth 2.0 credentials
+- Anthropic API key (or OpenAI API key if you want to use OpenAI instead)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd newsletter-generator
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   
+   Create a `.env.local` file in the root directory with the following variables:
+   ```env
+   # Twitter OAuth credentials (from https://developer.twitter.com/)
+   TWITTER_CLIENT_ID=your_twitter_client_id
+   TWITTER_CLIENT_SECRET=your_twitter_client_secret
+   
+   # Twitter username allowed to sign in (without @)
+   TWITTER_USER=your_twitter_username
+   
+   # LLM API Key (choose one)
+   ANTHROPIC_API_KEY=your_anthropic_api_key
+   # OR
+   # OPENAI_API_KEY=your_openai_api_key
+   
+   # NextAuth configuration (required for production, optional for local dev)
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=your_random_secret_string
+   ```
+
+   **Note:** For local development, `NEXTAUTH_URL` should be `http://localhost:3000`. For production, set it to your production URL.
+
+   **Note:** Generate a random string for `NEXTAUTH_SECRET`. You can use:
+   ```bash
+   openssl rand -base64 32
+   ```
+
+4. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open your browser**
+   
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Available Scripts
+
+- `npm run dev` - Start the development server
+- `npm run build` - Build the production application
+- `npm start` - Start the production server (after building)
+- `npm run lint` - Run ESLint
+- `npm run type-check` - Run TypeScript type checking
+
+### Twitter OAuth Setup
+
+To get Twitter OAuth credentials:
+
+1. Go to [Twitter Developer Portal](https://developer.twitter.com/)
+2. Create a new app or use an existing one
+3. Enable OAuth 2.0 and set the callback URL to: `http://localhost:3000/api/auth/callback/twitter` (for local dev)
+4. Copy the Client ID and Client Secret to your `.env.local` file
+
 ## How it works
 
 **Caution: nitty gritty technical details, probably only web developers care.**

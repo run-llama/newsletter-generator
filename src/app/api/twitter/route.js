@@ -18,7 +18,7 @@ If you haven't explored LlamaCloud yet, make sure to [sign up](https://cloud.lla
 -   **Event-Driven RAG Templates:** Use our event-driven workflows to implement techniques from key RAG papers---LongRAG, CorrectiveRAG, Self-Discover RAG---with added visualization and debugging, available as templates or for custom development. [Tweet](https://x.com/llama_index/status/1824833283928264952).
 -   **Box Integration in LlamaIndex:** New Box Readers integrated into LlamaIndex workflows facilitate efficient data extraction and authentication for enhanced AI applications. [Blogpost](https://medium.com/box-developer-blog/introducing-box-llama-index-reader-13903442a9e6), [Tweet](https://x.com/llama_index/status/1823464513301307787).
 
-**🗺️ LlamaCloud And LlamaParse:**
+**☁️ LlamaCloud:**
 
 -   Guide to Building a Multimodal Report Generation Agent using LlamaParse and LlamaIndex workflows to develop a multi-agent system that generates detailed reports with text and images from complex data sources. [Notebook](https://github.com/run-llama/llama_parse/blob/main/examples/multimodal/multimodal_report_generation_agent.ipynb), [Tweet](https://x.com/llama_index/status/1824483475338170541).
 
@@ -140,17 +140,32 @@ export async function GET(request) {
         })
     }
 
+    function addUtmParams(url) {
+        if (url.includes('llamaindex.ai')) {
+            const urlObj = new URL(url);
+            urlObj.searchParams.set('utm_source', 'newsletter');
+            urlObj.searchParams.delete('utm_medium');
+            urlObj.searchParams.delete('utm_campaign');
+            return urlObj.toString();
+        }
+        return url;
+    }
+
     if (tweets.data) {
         for (const tweet of tweets.data) {
-            if (tweet.note_tweet && tweet.note_tweet.text) {
+            const tweetText = tweet.note_tweet?.text || tweet.text;
+            if (tweetText) {
                 // Use a Set to handle duplicate t.co URLs in a single tweet
-                const tcoUrls = [...new Set(tweet.note_tweet.text.match(/https:\/\/t\.co\/[a-zA-Z0-9]+/g) || [])];
+                const tcoUrls = [...new Set(tweetText.match(/https:\/\/t\.co\/[a-zA-Z0-9]+/g) || [])];
                 if (tcoUrls.length > 0) {
                     const resolvedPairs = await Promise.all(
                         tcoUrls.map(async (url) => {
                             try {
                                 const response = await fetch(url);
-                                return { original: url, resolved: response.url };
+                                let resolved = response.url;
+                                // Add UTM params if URL contains llamaindex.ai
+                                resolved = addUtmParams(resolved);
+                                return { original: url, resolved: resolved };
                             } catch (e) {
                                 console.log(`Could not resolve ${url}`);
                                 return { original: url, resolved: url }; // keep original on error
@@ -161,7 +176,12 @@ export async function GET(request) {
                     for (const { original, resolved } of resolvedPairs) {
                         // Use global replace to handle multiple occurrences of the same t.co URL
                         const searchRegExp = new RegExp(original.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
-                        tweet.note_tweet.text = tweet.note_tweet.text.replace(searchRegExp, resolved);
+                        if (tweet.note_tweet && tweet.note_tweet.text) {
+                            tweet.note_tweet.text = tweet.note_tweet.text.replace(searchRegExp, resolved);
+                        }
+                        if (tweet.text) {
+                            tweet.text = tweet.text.replace(searchRegExp, resolved);
+                        }
                     }
                 }
             }
@@ -207,7 +227,7 @@ export async function GET(request) {
                     * Vary the greeting from "Llama Lovers" to something Llama-related, like "Llama Fans" or "Llama Enthusiasts"
                     * The headings should be:
                         * The Highlights (most liked tweets, see below)
-                        * LlamaCloud & LlamaParse (tweets that mention llamacloud or llamaparse)
+                        * LlamaCloud (tweets that mention llamacloud, llamasplit, llamaextract, llamasheets or llamaparse)
                         * Framework (tweets that are about changes to the llamaindex framework itself)
                         * Community (everything else)
                     * Each section should have a bullet point list of items
