@@ -27,13 +27,23 @@ export default function Home() {
   const { data: session } = useSession();
   const [markdown, setMarkdown] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [highlightsInput, setHighlightsInput] = useState('');
 
   const handleClick = async (e: FormEvent) => {
     e.preventDefault();
     setMarkdown('');
     setIsStreaming(true);
 
-    const eventSource = new EventSource(`/api/twitter`);
+    const params = new URLSearchParams();
+    if (highlightsInput.trim()) {
+      params.set('highlights', highlightsInput);
+    }
+
+    const url = params.toString()
+      ? `/api/twitter?${params.toString()}`
+      : `/api/twitter`;
+
+    const eventSource = new EventSource(url);
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -62,6 +72,15 @@ export default function Home() {
       <LoginStatus />
       {session && session.user && session.user.name && (
         <div>
+          <div className="highlights-input">
+            <h3>Highlights and CTAs (optional)</h3>
+            <textarea
+              value={highlightsInput}
+              onChange={(e) => setHighlightsInput(e.target.value)}
+              disabled={isStreaming}
+              placeholder="Paste important URLs or context to highlight at the very top of the newsletter."
+            />
+          </div>
           <button onClick={handleClick} disabled={isStreaming}>
             {isStreaming ? 'Streaming...' : 'Generate newsletter'}
           </button>
