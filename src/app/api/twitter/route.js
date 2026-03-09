@@ -18,7 +18,7 @@ If you haven't explored LlamaCloud yet, make sure to [sign up](https://cloud.lla
 -   **Event-Driven RAG Templates:** Use our event-driven workflows to implement techniques from key RAG papers---LongRAG, CorrectiveRAG, Self-Discover RAG---with added visualization and debugging, available as templates or for custom development. [Tweet](https://x.com/llama_index/status/1824833283928264952).
 -   **Box Integration in LlamaIndex:** New Box Readers integrated into LlamaIndex workflows facilitate efficient data extraction and authentication for enhanced AI applications. [Blogpost](https://medium.com/box-developer-blog/introducing-box-llama-index-reader-13903442a9e6), [Tweet](https://x.com/llama_index/status/1823464513301307787).
 
-**☁️ LlamaCloud:**
+**☁️ LlamaParse:**
 
 -   Guide to Building a Multimodal Report Generation Agent using LlamaParse and LlamaIndex workflows to develop a multi-agent system that generates detailed reports with text and images from complex data sources. [Notebook](https://github.com/run-llama/llama_parse/blob/main/examples/multimodal/multimodal_report_generation_agent.ipynb), [Tweet](https://x.com/llama_index/status/1824483475338170541).
 
@@ -28,18 +28,6 @@ If you haven't explored LlamaCloud yet, make sure to [sign up](https://cloud.lla
 2.  We have integrated Box documents into LlamaIndex workflows with new Box Readers, enabling efficient data extraction, authentication, and retrieval to enhance your LLM applications with robust, data-driven AI solutions. [Blogpost](https://medium.com/box-developer-blog/introducing-box-llama-index-reader-13903442a9e6), [Tweet](https://x.com/llama_index/status/1823464513301307787).
 3.  Multi-Agent Concierge as a Workflow, re-implementation of our financial concierge system using LlamaIndex's new Workflows abstraction, which supports looping, branching, debugging, and automatic visualization. [Video](https://www.youtube.com/watch?v=DqiIDMxuoKA&feature=youtu.be), [Tweet](https://x.com/llama_index/status/1823425199704039863).
 
-**✍️ Community:**
-
--   [Dave Bechberger's](https://x.com/bechbd) [tutorial](https://medium.com/@bechbd/knowledge-graphs-and-generative-ai-graphrag-with-amazon-neptune-and-llamaindex-part-1-39cd7255bac4) on Building a Natural Language Querying System for Graph Databases using LlamaIndex with Amazon Neptune to translate natural language into openCypher queries, execute them, and optimize with Amazon Bedrock's LLMs.
--   [Ravi Theja's](https://x.com/ravithejads) video [tutorial](https://www.youtube.com/watch?v=Skm70sGaME4) on rebuilding JSONalyze Query Engine using workflows.
--   [BeyondLLM](https://github.com/aiplanethub/beyondllm) by AI Planet Hub simplifies the development of advanced RAG pipelines to 5-7 lines of code, with features like auto-retrieval, reranking, and embedding fine-tuning. It integrates with Arize AI Phoenix for comprehensive evaluation and observability.
--   [Richmond Alake's](https://x.com/richmondalake) [video tutorial](https://www.youtube.com/watch?v=UfBQxl_Pe1w) on implementing Agentic RAG Using Claude 3.5 Sonnet, LlamaIndex, and MongoDB.
--   Rajib Deb's [video tutorial](https://www.youtube.com/watch?v=UFCpF6W2j3w) on Workflows, highlighting decorators for control flow, event-driven chaining, and custom orchestration steps.
--   [Tomaz Bratanic's](https://x.com/tb_tomaz) Neo4j [tutorial](https://medium.com/neo4j/entity-linking-and-relationship-extraction-with-relik-in-llamaindex-ca18892c169f) demonstrates using the Relik framework for information extraction, integrating spaCy, Coreferee, LlamaIndex, and Neo4j for entity linking, relationship extraction, and graph-based question answering.
--   [Andrei](https://x.com/_nerdai_) [video tutorial](https://www.youtube.com/watch?v=3yG--HKxmi8) on discussing llama-agents, our framework for building multi-agent systems with a focus on production use cases.
--   [Ravi Theja's](https://x.com/ravithejads) video [tutorial](https://www.youtube.com/watch?v=P4xHWojIB-M) on re-building our Citation Query Engine using workflows.
--   [Farzad Sunavala's](https://hashnode.com/@Farzzy528) [guide](https://farzzy.hashnode.dev/exploring-llamaindex-workflows-a-step-by-step-guide-to-building-a-rag-system-with-azure-ai-search-and-azure-openai) to Building a RAG System with Azure AI Search and Azure OpenAI using LlamaIndex workflows.
--   [Benito Martin's](https://medium.com/@benitomartin) [tutorial](https://medium.com/@benitomartin/cooking-with-ai-building-a-smart-multimodal-recipe-recommender-using-qdrant-llamaindex-and-2d6d1fa6566c) on Building a Smart Multimodal Recipe Recommender using Qdrant, LlamaIndex, and Google Gemini.
 `
 
 function getDateDaysAgo(days) {
@@ -86,11 +74,29 @@ export async function GET(request) {
                 Authorization: `Bearer ${session.accessToken}`
             }
         })
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.log('Twitter API error:', response.status, errorData);
+            return new Response(JSON.stringify({ error: "Failed to fetch Twitter User ID", details: errorData }), {
+                status: response.status,
+                headers: { 'Content-Type': 'application/json' },
+            })
+        }
+        
         const data = await response.json()
+        if (!data.data || !data.data.id) {
+            console.log('Unexpected Twitter API response:', data);
+            return new Response(JSON.stringify({ error: "Invalid response from Twitter API", details: data }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+            })
+        }
+        
         userId = data.data.id
     } catch (error) {
-        console.log(error)
-        return new Response(JSON.stringify({ error: "Failed to fetch Twitter User ID" }), {
+        console.log('Error fetching Twitter User ID:', error)
+        return new Response(JSON.stringify({ error: "Failed to fetch Twitter User ID", details: error.message }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         })
@@ -124,31 +130,62 @@ export async function GET(request) {
             }
         })
 
-        if (response.status !== 200) {
-            console.log(response)
-            return new Response(JSON.stringify({ error: "Twitter API call failed" }), {
-                status: 500,
+        if (response.status === 429) {
+            // Rate limit exceeded
+            const rateLimitReset = response.headers.get('x-rate-limit-reset');
+            const resetTime = rateLimitReset ? new Date(parseInt(rateLimitReset) * 1000).toISOString() : 'unknown';
+            const errorData = await response.json().catch(() => ({}));
+            console.log('Twitter API rate limit exceeded. Reset at:', resetTime);
+            return new Response(JSON.stringify({ 
+                error: "Twitter API rate limit exceeded", 
+                message: `Rate limit exceeded. Please try again after ${resetTime}`,
+                resetTime: resetTime,
+                details: errorData
+            }), {
+                status: 429,
+                headers: { 'Content-Type': 'application/json' },
+            })
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.log('Twitter API error:', response.status, errorData);
+            return new Response(JSON.stringify({ 
+                error: "Twitter API call failed", 
+                status: response.status,
+                details: errorData
+            }), {
+                status: response.status,
                 headers: { 'Content-Type': 'application/json' },
             })
         }
 
         tweets = await response.json()
     } catch (error) {
-        return new Response(JSON.stringify({ error: "Error fetching recent tweets" }), {
+        console.log('Error fetching tweets:', error);
+        return new Response(JSON.stringify({ 
+            error: "Error fetching recent tweets", 
+            message: error.message 
+        }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         })
     }
 
     function addUtmParams(url) {
-        if (url.includes('llamaindex.ai')) {
+        try {
             const urlObj = new URL(url);
-            urlObj.searchParams.set('utm_source', 'newsletter');
-            urlObj.searchParams.delete('utm_medium');
-            urlObj.searchParams.delete('utm_campaign');
-            return urlObj.toString();
+            const host = urlObj.hostname || '';
+            // Add utm_source=newsletter to any LlamaIndex-related domains
+            if (host.includes('llamaindex')) {
+                urlObj.searchParams.set('utm_source', 'newsletter');
+                return urlObj.toString();
+            }
+            return url;
+        } catch {
+            // If URL parsing fails, return original URL
+            return url;
         }
-        return url;
     }
 
     if (tweets.data) {
@@ -195,6 +232,25 @@ export async function GET(request) {
     let mostLiked = tweets.data.sort((a, b) => b.public_metrics.like_count - a.public_metrics.like_count).slice(0, 3)
     let mostLikedList = listTweets(mostLiked)
 
+    // Optional user-provided highlights/CTAs to feature at the very top
+    const { searchParams } = new URL(request.url);
+    const highlightsFromRequest = searchParams.get('highlights') || '';
+
+    const highlightsPromptSection = highlightsFromRequest.trim()
+        ? `
+                    You have also been given additional "Highlights and CTAs" content that should be surfaced at the very top of the newsletter, immediately after the introductory paragraph.
+
+                    Here is that additional content (URLs and context):
+                    -----------
+                    ${highlightsFromRequest}
+                    -----------
+
+                    Based on this content, invent a short, attention-grabbing markdown section title (3–8 words) and create a dedicated section directly after the intro paragraph. Do NOT hard-code the title to any fixed phrase; always derive it from the content. Summarize this content into clear bullet points with strong calls to action, and ensure each bullet links to the provided URLs.
+            `
+        : `
+                    If no extra "Highlights and CTAs" content is provided, do not add such a special top section.
+            `;
+
     // const llm = new OpenAI({
     //     model: "gpt-4o-mini",
     //     temperature: 0.2,
@@ -203,7 +259,6 @@ export async function GET(request) {
     // });
     const llm = new Anthropic({
         model: "claude-sonnet-4-20250514",
-        temperature: 0.2,
         streaming: true,
         apiKey: process.env.ANTHROPIC_API_KEY
     })
@@ -225,18 +280,21 @@ export async function GET(request) {
 
                     Important features to note:
                     * Vary the greeting from "Llama Lovers" to something Llama-related, like "Llama Fans" or "Llama Enthusiasts"
-                    * The headings should be:
-                        * The Highlights (most liked tweets, see below)
-                        * LlamaCloud (tweets that mention llamacloud, llamasplit, llamaextract, llamasheets or llamaparse)
-                        * Framework (tweets that are about changes to the llamaindex framework itself)
-                        * Community (everything else)
-                    * Each section should have a bullet point list of items
+                    * Use the following rules for sections and headings:
+                        * If any extra "Highlights and CTAs" content is provided, create a custom-titled section (you choose a short, attention-grabbing title based on the content) immediately after the intro paragraph, using that content.
+                        * Then add a section titled "The Highlights" (most liked tweets, see below).
+                        * Then add a section titled "LlamaParse" for tweets that mention llamacloud, llamasplit, llamaextract, llamasheets or llamaparse.
+                        * Then add a section titled "Framework" for tweets that are about changes to the llamaindex framework itself.
+                        * Do not create a "Community" section.
+                    * Each section should have a bullet point list of items.
                     * Each item should link to the relevant blog post, tutorial, etc. from the tweet.
                      
                     The highlights section should focus on the most-liked tweets; these are:
                     -----------
                     ${mostLikedList}
                     -----------
+
+                    ${highlightsPromptSection}
                 `,
                 stream: true
             })

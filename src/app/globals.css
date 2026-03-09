@@ -92,3 +92,38 @@ a:hover {
   overflow-y: auto;
   max-height: 1000px;
 }
+
+.highlights-input {
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e4e8;
+}
+
+.highlights-input h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 1rem;
+  color: var(--primary-color);
+}
+
+.highlights-input textarea {
+  width: 100%;
+  min-height: 120px;
+  max-height: 240px;
+  border: 1px solid #d0d4da;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.9rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.highlights-input textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.15);
+}
